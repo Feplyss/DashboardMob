@@ -1,31 +1,64 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, Image, ScrollView, FlatList, SafeAreaView } from 'react-native';
-import { List, ProgressBar, Appbar } from 'react-native-paper';
+import { Appbar } from 'react-native-paper';
 import { Cursos } from './Cursos';
+import { Curso } from './src/component/Curso'
+import { Badge } from './src/component/Badge'
+import { Titulo } from './src/component/Titulo'
 import { fetchUnidadesCurriculares } from './src/service/UnidadeCurricular'
 import { fetchEncontro } from './src/service/Encontro'
+import { fetchSituacaoAprendizagem } from "./src/service/SituacaoAprendizagem";
+import { fetchAtividade } from "./src/service/Atividade";
+
 
 
 export default function App() {
   const [unidadeCurricular, setUnidadeCurricular] = useState([]);
   const [encontro, setEncontro] = useState([]);
+  const [situacaoAprendizagem, setSituacaoAprendizagem] = useState([]);
+  const [atividade, setAtividade] = useState([]);
 
   var idUsuario = '3b700ecc-cec9-4be4-8c00-48bced543861'
 
   useEffect(() => {
     const fetchData = async () => {
-      var UCs = await fetchUnidadesCurriculares(idUsuario);
-      setUnidadeCurricular(UCs);
+      var unidadesCurriculares = await fetchUnidadesCurriculares(idUsuario);
+      setUnidadeCurricular(unidadesCurriculares);
 
-      var lstEncontro = [];
+      console.log("ucs " + unidadeCurricular);
 
-      UCs.forEach(async uc => {
+      var listEncontro = [];
+
+      unidadesCurriculares.forEach(async uc => {
         var encontro = await fetchEncontro(uc.id);
-        lstEncontro.push(encontro);
+       listEncontro.push(encontro);
       });
 
-      setEncontro(lstEncontro);
+      setEncontro(listEncontro);
 
+      console.log("encontros " + encontro);
+
+      var listSituacaoAprendizagem = [];
+      
+      encontro.forEach(async enc => {
+        var situacoesAprendizagem = await fetchSituacaoAprendizagem(enc.id);
+        listSituacaoAprendizagem.push(situacoesAprendizagem);
+      });
+
+      setSituacaoAprendizagem(listSituacaoAprendizagem);
+
+      console.log("sas " + situacaoAprendizagem);
+
+      var listAtividade = [];
+
+      situacaoAprendizagem.forEach(async sa => {
+        var atividades = await fetchAtividade(sa.id);
+        listAtividade.push(atividades);
+      });
+
+      setAtividade(listAtividade);
+
+      console.log("atividades " + atividade);
     }
 
     fetchData()
@@ -36,68 +69,6 @@ export default function App() {
   //   lstEncontro.push(fetchEncontro(uc.id))
   // });
 
-  const Title = (props) => {
-    var text = props.text;
-    return (
-      <View style={styles.title}>
-
-        <Text style={styles.titleText}>{text}</Text>
-
-      </View>
-    );
-  }
-
-  const Badge = (props) => {
-    var curso = props.curso;
-    return (
-      <View>
-
-        <View style={styles.badge}><Image style={styles.badgeImagem} source={curso.imagem} /></View>
-
-      </View>
-    );
-  }
-
-  const Curso = ({ item }) => {
-    return (
-      <View>
-
-        <List.Accordion
-          style={styles.cursoAcordeao}
-          title={<Text style={styles.cursoTitulo}>{item.nome}</Text>}
-          description={<ProgressBar style={styles.cursoBarra} progress={0.6} color="#004587" />}
-          left={props => <Image style={styles.cursoImagem} source={item.imagem} />}
-        >
-
-          <List.Item
-            style={styles.cursoItem}
-            title={props => <Text style={styles.cursoNome}>Faltas</Text>}
-            description={props => <Text style={styles.cursoDesc}>3</Text>}
-            left={props => <List.Icon color={'#000000'} icon="book-off" />}
-          />
-          <List.Item
-            style={styles.cursoItem}
-            title={props => <Text style={styles.cursoNome}>Material mais recente</Text>}
-            description={props => <Text style={styles.cursoDesc}>Classes Java</Text>}
-            left={props => <List.Icon color={'#000000'} icon="book-clock" />}
-          />
-          <List.Item
-            style={styles.cursoItem}
-            title={props => <Text style={styles.cursoNome}>Tarefa mais recente</Text>}
-            description={props => <Text style={styles.cursoDesc}>Criar uma classe</Text>}
-            left={props => <List.Icon color={'#000000'} icon="calendar-clock" />}
-          />
-
-        </List.Accordion>
-
-      </View>
-    );
-  }
-
-  const Texto = ({ item }) => (
-    <Text>{item.nome}</Text>
-  )
-
   return (
     <SafeAreaView style={styles.container}>
 
@@ -107,7 +78,7 @@ export default function App() {
         <Image style={styles.user} source={require("./assets/user.png")} />
       </Appbar.Header>
 
-      <Title text='Badges' />
+      <Titulo texto='Badges' />
 
       <View style={styles.badgeArea}>
         <ScrollView style={styles.scroll} horizontal={true} showsHorizontalScrollIndicator={false}>
@@ -121,11 +92,10 @@ export default function App() {
         </ScrollView>
       </View>
 
-      <Title text='Cursos' />
-
+      <Titulo texto= 'Cursos'/>
       <FlatList
         data={unidadeCurricular}
-        renderItem={Curso}
+        renderItem={({ item }) => <Curso item={item}/>}
       />
 
     </SafeAreaView>
@@ -162,69 +132,7 @@ const styles = StyleSheet.create({
     marginLeft: 'auto',
     resizeMode: 'contain',
   },
-  title: {
-    justifyContent: 'center',
-    height: 88,
-    marginLeft: 32,
-    //fontWeight: 500,
-  },
-  titleText: {
-    fontSize: 24,
-  },
-  scroll: {
-    paddingRight: 32,
-  },
-  badgeArea: {
-    flexDirection: "row",
-    alignItems: 'center',
-    width: '100%',
-    height: 88,
-  },
-  badge: {
-    width: 88,
-    height: 88,
-    borderRadius: 100,
-    backgroundColor: "#d9c738",
-    marginLeft: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  badgeImagem: {
-    width: '60%',
-    height: '60%',
-    resizeMode: 'contain',
-  },
   headerTitle: {
     color: '#ffffff',
   },
-  cursoAcordeao: {
-    backgroundColor: '#ffffff',
-    padding: 0,
-    paddingRight: 16,
-  },
-  cursoItem: {
-    backgroundColor: "#eef5f9",
-    paddingLeft: '5%',
-  },
-  cursoNome: {
-    fontSize: 14,
-  },
-  cursoDesc: {
-    fontSize: 12,
-    color: '#111111'
-  },
-  cursoImagem: {
-    width: 40,
-    height: 40,
-    margin: 16,
-    resizeMode: 'contain',
-  },
-  cursoTitulo: {
-    //fontWeight: 500,
-    fontSize: 14,
-  },
-  cursoBarra: {
-    width: 200,
-    borderRadius: 100,
-  }
 });
