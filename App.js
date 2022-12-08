@@ -1,72 +1,103 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, FlatList, SafeAreaView } from 'react-native';
-import { Cursos } from './Cursos';
+import { StyleSheet, View, FlatList, SafeAreaView, Text } from 'react-native';
 import { Header } from "./src/component/Header";
 import { Perfil } from "./src/component/Perfil";
-import { Curso } from './src/component/Curso'
 import { Badge } from './src/component/Badge'
 import { Titulo } from './src/component/Titulo'
+import { CursoLista } from "./src/component/CursoLista";
 import { fetchUsuario } from './src/service/Usuario';
 import { fetchUnidadesCurriculares } from './src/service/UnidadeCurricular'
 import { fetchEncontro } from './src/service/Encontro'
 import { fetchSituacaoAprendizagem } from './src/service/SituacaoAprendizagem';
 import { fetchAtividade } from './src/service/Atividade';
+import { fetchObjetoAprendizagem } from "./src/service/ObjetoAprendizagem";
 import { fetchBadge } from "./src/service/Badge";
 
 
 
 export default function App() {
   const [usuario, setUsuario] = useState([]);
-  const [unidadesCurriculares, setUnidadeCurricular] = useState([]);
-  const [encontros, setEncontro] = useState([]);
-  const [situacoesAprendizagem, setSituacaoAprendizagem] = useState([]);
-  const [atividades, setAtividade] = useState([]);
+  const [unidadesCurriculares, setUnidadesCurriculares] = useState([]);
+  const [encontros, setEncontros] = useState([]);
+  const [situacoesAprendizagem, setSituacoesAprendizagem] = useState([]);
+  const [atividades, setAtividades] = useState([]);
+  const [objetosAprendizagem, setObjetosAprendizagem] = useState([]);
   const [badges, setBadges] = useState([]);
 
   var idUsuario = '3b700ecc-cec9-4be4-8c00-48bced543861'
 
   useEffect(() => {
     const fetchData = async () => {
-      var usuario = await fetchUsuario(idUsuario);
-      setUsuario(usuario);
 
-      var unidadesCurriculares = await fetchUnidadesCurriculares(idUsuario);
-      setUnidadeCurricular(unidadesCurriculares);
+      //Usuario
+
+      var usr = await fetchUsuario(idUsuario);
+      setUsuario(usr);
+
+      //Unidades Curriculares
+
+      var ucs = await fetchUnidadesCurriculares(idUsuario);
+      setUnidadesCurriculares(ucs);
+
+      //Encontros
 
       var listEncontro = [];
 
       unidadesCurriculares.forEach(async uc => {
-        var encontro = await fetchEncontro(uc.id);
-        listEncontro.push(encontro);
+        listEncontro.push(await fetchEncontro(uc.id));
       });
 
-      setEncontro(listEncontro);
+      setEncontros(listEncontro);
+      
+      console.log(encontros);
+
+      //Situacoes Aprendizagem
 
       var listSituacaoAprendizagem = [];
 
       encontros.forEach(async enc => {
-        var situacoesAprendizagem = await fetchSituacaoAprendizagem(enc.id);
-        listSituacaoAprendizagem.push(situacoesAprendizagem);
+        listSituacaoAprendizagem.push(await fetchSituacaoAprendizagem(enc[1].id));
       });
 
-      setSituacaoAprendizagem(listSituacaoAprendizagem);
+      setSituacoesAprendizagem(listSituacaoAprendizagem);
+
+      console.log(situacoesAprendizagem);
+
+      //Atividades
 
       var listAtividade = [];
 
       situacoesAprendizagem.forEach(async sa => {
-        var atividades = await fetchAtividade(sa.id);
-        listAtividade.push(atividades);
+        listAtividade.push(await fetchAtividade(sa.id));
       });
 
-      setAtividade(listAtividade);
+      setAtividades(listAtividade);
+      
+      console.log(atividades);
 
-      var badges = await fetchBadge();
-      setBadges(badges);
+      //Objetos Aprendizagem
+
+      var listObjetoAprendizagem = [];
+
+      situacoesAprendizagem.forEach(async sa => {
+        listObjetoAprendizagem.push(await fetchObjetoAprendizagem(sa.id));
+      });
+
+      setObjetosAprendizagem(listObjetoAprendizagem);
+
+      console.log(objetosAprendizagem);
+
+      //Badges
+
+      var bdgs = await fetchBadge();
+      setBadges(bdgs);
     }
 
     fetchData()
       .catch(console.error);
   }, []);
+
+  
 
   // UCs.forEach(uc => {
   //   lstEncontro.push(fetchEncontro(uc.id))
@@ -82,19 +113,17 @@ export default function App() {
       <Titulo texto='Badges' />
 
       <View>
-          <FlatList
-            showsHorizontalScrollIndicator={false}
-            horizontal={true}
-            data={badges}
-            renderItem={Badge}
-          />
+        <FlatList
+          showsHorizontalScrollIndicator={false}
+          horizontal={true}
+          data={badges}
+          renderItem={Badge}
+        />
       </View>
 
       <Titulo texto='Cursos' />
-      <FlatList
-        data={unidadesCurriculares}
-        renderItem={Curso}
-      />
+
+      {CursoLista(unidadesCurriculares)}
 
     </SafeAreaView>
   );

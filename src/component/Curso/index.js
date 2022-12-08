@@ -7,7 +7,7 @@ const Curso = ({ item }) => {
 
             <List.Accordion
                 style={styles.cursoAcordeao}
-                title={<Text style={styles.cursoTitulo}>{item.nome}</Text>}
+                title={<Text style={styles.cursoTitulo}>{item.nomeCurto}</Text>}
                 description={<ProgressBar style={styles.cursoBarra} progress={0.6} color="#004587" />}
                 left={props => <Image style={styles.cursoImagem} source={require('C:/Users/user/Documents/DashboardMob/assets/cpp.png')} />}
             >
