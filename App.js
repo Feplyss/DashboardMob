@@ -2,55 +2,73 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, Image, ScrollView, FlatList, SafeAreaView } from 'react-native';
 import { List, ProgressBar, Appbar } from 'react-native-paper';
 import { Cursos } from './Cursos';
+import { fetchUnidadesCurriculares } from './src/service/UnidadeCurricular'
+import { fetchEncontro } from './src/service/Encontro'
+
 
 export default function App() {
+  const [unidadeCurricular, setUnidadeCurricular] = useState([]);
+  const [encontro, setEncontro] = useState([]);
 
-  const [data, setData] = useState([]);
+  var idUsuario = '3b700ecc-cec9-4be4-8c00-48bced543861'
 
-  const fetchData = async () => {
-    const resp = await fetch("http://academico3.rj.senac.br:8080/api/UnidadeCurricular");
-    const data = await resp.json();
-    setData(data);
-  };
-
-  
   useEffect(() => {
-    fetchData();
+    const fetchData = async () => {
+      var UCs = await fetchUnidadesCurriculares(idUsuario);
+      setUnidadeCurricular(UCs);
+
+      var lstEncontro = [];
+
+      UCs.forEach(async uc => {
+        var encontro = await fetchEncontro(uc.id);
+        lstEncontro.push(encontro);
+      });
+
+      setEncontro(lstEncontro);
+
+    }
+
+    fetchData()
+      .catch(console.error);
   }, []);
+
+  // UCs.forEach(uc => {
+  //   lstEncontro.push(fetchEncontro(uc.id))
+  // });
 
   const Title = (props) => {
     var text = props.text;
     return (
-      <View>
-  
-        <Text style={styles.title}>{text}</Text>
-  
+      <View style={styles.title}>
+
+        <Text style={styles.titleText}>{text}</Text>
+
       </View>
     );
   }
-  
+
   const Badge = (props) => {
     var curso = props.curso;
     return (
       <View>
-  
+
         <View style={styles.badge}><Image style={styles.badgeImagem} source={curso.imagem} /></View>
-  
+
       </View>
     );
   }
-  
-  const Curso = ({item}) => {
+
+  const Curso = ({ item }) => {
     return (
       <View>
-  
+
         <List.Accordion
           style={styles.cursoAcordeao}
           title={<Text style={styles.cursoTitulo}>{item.nome}</Text>}
-          description={<ProgressBar style={styles.cursoBarra} progress={0.6} color={item.cor} />}
+          description={<ProgressBar style={styles.cursoBarra} progress={0.6} color="#004587" />}
           left={props => <Image style={styles.cursoImagem} source={item.imagem} />}
         >
-  
+
           <List.Item
             style={styles.cursoItem}
             title={props => <Text style={styles.cursoNome}>Faltas</Text>}
@@ -59,7 +77,7 @@ export default function App() {
           />
           <List.Item
             style={styles.cursoItem}
-            title={props => <Text style={styles.cursoNome}>Aula mais recente</Text>}
+            title={props => <Text style={styles.cursoNome}>Material mais recente</Text>}
             description={props => <Text style={styles.cursoDesc}>Classes Java</Text>}
             left={props => <List.Icon color={'#000000'} icon="book-clock" />}
           />
@@ -69,14 +87,14 @@ export default function App() {
             description={props => <Text style={styles.cursoDesc}>Criar uma classe</Text>}
             left={props => <List.Icon color={'#000000'} icon="calendar-clock" />}
           />
-  
+
         </List.Accordion>
-  
+
       </View>
     );
   }
 
-  const Texto = ({item}) => (
+  const Texto = ({ item }) => (
     <Text>{item.nome}</Text>
   )
 
@@ -106,7 +124,7 @@ export default function App() {
       <Title text='Cursos' />
 
       <FlatList
-        data={data}
+        data={unidadeCurricular}
         renderItem={Curso}
       />
 
@@ -145,11 +163,13 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   title: {
-    fontSize: 24,
-    marginTop: 32,
-    marginBottom: 32,
+    justifyContent: 'center',
+    height: 88,
     marginLeft: 32,
     //fontWeight: 500,
+  },
+  titleText: {
+    fontSize: 24,
   },
   scroll: {
     paddingRight: 32,
@@ -201,13 +221,10 @@ const styles = StyleSheet.create({
   },
   cursoTitulo: {
     //fontWeight: 500,
-    marginBottom: 8,
     fontSize: 14,
-    marginBottom: '1%',
   },
   cursoBarra: {
     width: 200,
-    marginRight: 24,
     borderRadius: 100,
   }
 });
