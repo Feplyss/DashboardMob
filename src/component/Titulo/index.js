@@ -15,8 +15,7 @@ const styles = StyleSheet.create({
 
     titulo: {
         justifyContent: 'center',
-        height: 88,
-        marginLeft: 32,
+        margin: 32,
         //fontWeight: 500,
     },
     tituloTexto: {

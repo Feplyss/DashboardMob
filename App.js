@@ -1,64 +1,67 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, Image, ScrollView, FlatList, SafeAreaView } from 'react-native';
-import { Appbar } from 'react-native-paper';
+import { StyleSheet, View, FlatList, SafeAreaView } from 'react-native';
 import { Cursos } from './Cursos';
+import { Header } from "./src/component/Header";
+import { Perfil } from "./src/component/Perfil";
 import { Curso } from './src/component/Curso'
 import { Badge } from './src/component/Badge'
 import { Titulo } from './src/component/Titulo'
+import { fetchUsuario } from './src/service/Usuario';
 import { fetchUnidadesCurriculares } from './src/service/UnidadeCurricular'
 import { fetchEncontro } from './src/service/Encontro'
-import { fetchSituacaoAprendizagem } from "./src/service/SituacaoAprendizagem";
-import { fetchAtividade } from "./src/service/Atividade";
+import { fetchSituacaoAprendizagem } from './src/service/SituacaoAprendizagem';
+import { fetchAtividade } from './src/service/Atividade';
+import { fetchBadge } from "./src/service/Badge";
 
 
 
 export default function App() {
-  const [unidadeCurricular, setUnidadeCurricular] = useState([]);
-  const [encontro, setEncontro] = useState([]);
-  const [situacaoAprendizagem, setSituacaoAprendizagem] = useState([]);
-  const [atividade, setAtividade] = useState([]);
+  const [usuario, setUsuario] = useState([]);
+  const [unidadesCurriculares, setUnidadeCurricular] = useState([]);
+  const [encontros, setEncontro] = useState([]);
+  const [situacoesAprendizagem, setSituacaoAprendizagem] = useState([]);
+  const [atividades, setAtividade] = useState([]);
+  const [badges, setBadges] = useState([]);
 
   var idUsuario = '3b700ecc-cec9-4be4-8c00-48bced543861'
 
   useEffect(() => {
     const fetchData = async () => {
+      var usuario = await fetchUsuario(idUsuario);
+      setUsuario(usuario);
+
       var unidadesCurriculares = await fetchUnidadesCurriculares(idUsuario);
       setUnidadeCurricular(unidadesCurriculares);
-
-      console.log("ucs " + unidadeCurricular);
 
       var listEncontro = [];
 
       unidadesCurriculares.forEach(async uc => {
         var encontro = await fetchEncontro(uc.id);
-       listEncontro.push(encontro);
+        listEncontro.push(encontro);
       });
 
       setEncontro(listEncontro);
 
-      console.log("encontros " + encontro);
-
       var listSituacaoAprendizagem = [];
-      
-      encontro.forEach(async enc => {
+
+      encontros.forEach(async enc => {
         var situacoesAprendizagem = await fetchSituacaoAprendizagem(enc.id);
         listSituacaoAprendizagem.push(situacoesAprendizagem);
       });
 
       setSituacaoAprendizagem(listSituacaoAprendizagem);
 
-      console.log("sas " + situacaoAprendizagem);
-
       var listAtividade = [];
 
-      situacaoAprendizagem.forEach(async sa => {
+      situacoesAprendizagem.forEach(async sa => {
         var atividades = await fetchAtividade(sa.id);
         listAtividade.push(atividades);
       });
 
       setAtividade(listAtividade);
 
-      console.log("atividades " + atividade);
+      var badges = await fetchBadge();
+      setBadges(badges);
     }
 
     fetchData()
@@ -72,30 +75,25 @@ export default function App() {
   return (
     <SafeAreaView style={styles.container}>
 
-      <Appbar.Header style={styles.header}>
-        <Image style={styles.menuIcon} source={require("./assets/menu.png")} />
-        <Image style={styles.logo} source={require("./assets/senac.png")} />
-        <Image style={styles.user} source={require("./assets/user.png")} />
-      </Appbar.Header>
+      <Header />
+
+      <Perfil img={require("./assets/person.png")} texto={usuario.nomeCompleto} />
 
       <Titulo texto='Badges' />
 
-      <View style={styles.badgeArea}>
-        <ScrollView style={styles.scroll} horizontal={true} showsHorizontalScrollIndicator={false}>
-
-          <Badge curso={Cursos.java} />
-          <Badge curso={Cursos.sql} />
-          <Badge curso={Cursos.nodejs} />
-          <Badge curso={Cursos.python} />
-          <Badge curso={Cursos.cpp} />
-
-        </ScrollView>
+      <View>
+          <FlatList
+            showsHorizontalScrollIndicator={false}
+            horizontal={true}
+            data={badges}
+            renderItem={Badge}
+          />
       </View>
 
-      <Titulo texto= 'Cursos'/>
+      <Titulo texto='Cursos' />
       <FlatList
-        data={unidadeCurricular}
-        renderItem={({ item }) => <Curso item={item}/>}
+        data={unidadesCurriculares}
+        renderItem={Curso}
       />
 
     </SafeAreaView>
@@ -107,32 +105,5 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     overflow: 'scroll',
-  },
-  header: {
-    backgroundColor: '#004587',
-    height: 64,
-    alignItems: 'center',
-  },
-  menuIcon: {
-    width: 32,
-    height: 32,
-    marginLeft: 16,
-    marginRight: 16,
-  },
-  logo: {
-    width: 80,
-    height: 48,
-    marginRight: 16,
-    resizeMode: 'contain',
-  },
-  user: {
-    width: 32,
-    height: 40,
-    marginRight: 20,
-    marginLeft: 'auto',
-    resizeMode: 'contain',
-  },
-  headerTitle: {
-    color: '#ffffff',
   },
 });
