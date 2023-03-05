@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, View, FlatList, SafeAreaView, Text } from 'react-native';
 import { Header } from "./src/component/Header";
 import { Perfil } from "./src/component/Perfil";
-import { Badge } from './src/component/Badge'
-import { Titulo } from './src/component/Titulo'
+import { Titulo } from './src/component/Titulo';
 import { CursoLista } from "./src/component/CursoLista";
+import { BadgeLista } from "./src/component/BadgeLista";
 import { fetchUsuario } from './src/service/Usuario';
 import { fetchUnidadesCurriculares } from './src/service/UnidadeCurricular'
 import { fetchEncontro } from './src/service/Encontro'
@@ -97,7 +97,27 @@ export default function App() {
       .catch(console.error);
   }, []);
 
-  
+  var ucMock = [
+    {
+      id: 1,
+      nomeCurto: "Introdução a programação"
+    },
+    {
+      id: 2,
+      nomeCurto: "Banco de dados I"
+    }
+  ]  
+
+  var badgeMock = [
+    {
+      id: 1,
+      descricao: "Python"
+    },
+    {
+      id: 2,
+      descricao: "C++"
+    }
+  ]  
 
   // UCs.forEach(uc => {
   //   lstEncontro.push(fetchEncontro(uc.id))
@@ -112,18 +132,11 @@ export default function App() {
 
       <Titulo texto='Badges' />
 
-      <View>
-        <FlatList
-          showsHorizontalScrollIndicator={false}
-          horizontal={true}
-          data={badges}
-          renderItem={Badge}
-        />
-      </View>
-
+      <BadgeLista data={badgeMock} />
+      
       <Titulo texto='Cursos' />
 
-      {CursoLista(unidadesCurriculares)}
+      <CursoLista data={ucMock} />
 
     </SafeAreaView>
   );
